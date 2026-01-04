@@ -1,9 +1,10 @@
 /**
- * SwarSadhana - Indian Classical Music Vocal Trainer
- * Main Application Entry Point
+ * SwarSadhana Pro - Indian Classical Music Vocal Trainer
+ * Main Application Entry Point with anime.js animations
  * स्वरसाधना - भारतीय शास्त्रीय संगीत स्वर प्रशिक्षण
  */
 
+import anime from 'animejs/lib/anime.es.js';
 import { getAudioEngine } from './audio/AudioEngine.js';
 import { PitchDetector } from './audio/PitchDetector.js';
 import { getSynthesizer } from './audio/SwarSynthesizer.js';
@@ -15,6 +16,7 @@ import { AccuracyMeter } from './components/AccuracyMeter.js';
 import { SHRUTI_MAP, DEFAULT_SA_FREQUENCY, generateShuddhaScale, compareToTarget } from './utils/swarUtils.js';
 import { RAGA_DATABASE, getAllRagas, generateRagaScale, getRandomRagaNote } from './utils/ragaDatabase.js';
 import { getSettings, getProgress, recordSession, getOverallAccuracy, getBaseSaFrequency } from './utils/storageUtils.js';
+import animationEngine from './utils/AnimationEngine.js';
 
 class SwarSadhanaApp {
   constructor() {
@@ -52,7 +54,21 @@ class SwarSadhanaApp {
     this.tanpura.setBaseSa(this.baseSa);
     this.renderApp();
     this.setupEventListeners();
+    this.setupButtonRipples();
     this.showScreen('home');
+
+    // Initialize particles after a short delay for smooth load
+    setTimeout(() => {
+      animationEngine.initParticles();
+    }, 100);
+  }
+
+  setupButtonRipples() {
+    document.querySelectorAll('.btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        animationEngine.buttonPress(btn, e);
+      });
+    });
   }
 
   renderApp() {
@@ -369,6 +385,9 @@ class SwarSadhanaApp {
     const screen = document.getElementById(`${screenName}Screen`);
     if (screen) {
       screen.classList.add('active');
+
+      // Animate screen elements
+      this.animateScreenEntrance(screenName);
     }
 
     this.currentScreen = screenName;
@@ -378,9 +397,72 @@ class SwarSadhanaApp {
       this.initPracticeScreen();
     } else if (screenName === 'home') {
       this.updateHomeStats();
+      this.animateHomeStats();
     } else if (screenName === 'pragati') {
       this.updateProgressStats();
+      this.animateProgressStats();
     }
+  }
+
+  animateScreenEntrance(screenName) {
+    const screen = document.getElementById(`${screenName}Screen`);
+    if (!screen) return;
+
+    // Animate hero if present
+    const hero = screen.querySelector('.hero');
+    if (hero) {
+      animationEngine.heroReveal(hero);
+    }
+
+    // Animate cards with stagger
+    const cards = screen.querySelectorAll('.card');
+    if (cards.length > 0) {
+      animationEngine.cardEntrance(cards);
+    }
+  }
+
+  animateHomeStats() {
+    const progress = getProgress();
+
+    setTimeout(() => {
+      const sessionsEl = document.getElementById('totalSessions');
+      const accuracyEl = document.getElementById('totalAccuracy');
+      const streakEl = document.getElementById('bestStreak');
+
+      if (sessionsEl) {
+        animationEngine.countUp(sessionsEl, progress.totalSessions);
+      }
+      if (accuracyEl) {
+        animationEngine.countUp(accuracyEl, getOverallAccuracy(), { suffix: '%' });
+      }
+      if (streakEl) {
+        animationEngine.countUp(streakEl, progress.bestStreak);
+      }
+    }, 400);
+  }
+
+  animateProgressStats() {
+    const progress = getProgress();
+
+    setTimeout(() => {
+      animationEngine.countUp(
+        document.getElementById('progressSessions'),
+        progress.totalSessions
+      );
+      animationEngine.countUp(
+        document.getElementById('progressExercises'),
+        progress.totalExercises
+      );
+      animationEngine.countUp(
+        document.getElementById('progressAccuracy'),
+        getOverallAccuracy(),
+        { suffix: '%' }
+      );
+      animationEngine.countUp(
+        document.getElementById('progressStreak'),
+        progress.bestStreak
+      );
+    }, 300);
   }
 
   initPracticeScreen() {

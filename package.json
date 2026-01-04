@@ -12,6 +12,7 @@
         "vite": "6.0.0"
     },
     "dependencies": {
+        "animejs": "^3.2.2",
         "pitchfinder": "2.3.4",
         "tone": "15.1.22"
     }
