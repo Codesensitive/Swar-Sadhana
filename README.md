@@ -3,7 +3,17 @@
 🎵 **Indian Classical Music Vocal Trainer** - Practice Sa Re Ga Ma Pa Da Ni with real-time pitch detection
 
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tone.js](https://img.shields.io/badge/Tone.js-F734AD?style=flat)](https://tonejs.github.io/)
+[![Tong.js](https://img.shields.io/badge/Tone.js-F734AD?style=flat)](https://tonejs.github.io/)
+
+<p align="center">
+  <img src="screenshots/home.png" alt="SwarSadhana Home Screen" width="800">
+</p>
+
+## Screenshots
+
+| Practice Screen | Raga Selection |
+|:---:|:---:|
+| <img src="screenshots/practice.png" alt="Practice Screen" width="400"> | <img src="screenshots/ragas.png" alt="Raga Screen" width="400"> |
 
 ## Features
 
