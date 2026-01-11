@@ -13,6 +13,7 @@ import { SwarDisplay } from './components/SwarDisplay.js';
 import { WaveformVisualizer } from './components/WaveformVisualizer.js';
 import { SwarKeyboard } from './components/SwarKeyboard.js';
 import { AccuracyMeter } from './components/AccuracyMeter.js';
+import { ScaleSelector } from './components/ScaleSelector.js';
 import { SHRUTI_MAP, DEFAULT_SA_FREQUENCY, generateShuddhaScale, compareToTarget } from './utils/swarUtils.js';
 import { RAGA_DATABASE, getAllRagas, generateRagaScale, getRandomRagaNote, getPakadDisplay } from './utils/ragaDatabase.js';
 import { getSettings, getProgress, recordSession, getOverallAccuracy, getBaseSaFrequency } from './utils/storageUtils.js';
@@ -55,12 +56,85 @@ class SwarSadhanaApp {
     this.renderApp();
     this.setupEventListeners();
     this.setupButtonRipples();
+    this.initScaleSelectors();
     this.showScreen('home');
 
     // Initialize particles after a short delay for smooth load
     setTimeout(() => {
       animationEngine.initParticles();
     }, 100);
+  }
+
+  initScaleSelectors() {
+    const scaleChangeHandler = (frequency, committed) => {
+      this.updateBaseSa(frequency);
+    };
+
+    // Home screen scale selector
+    const homeContainer = document.getElementById('homeScaleSelector');
+    if (homeContainer) {
+      this.homeScaleSelector = new ScaleSelector(homeContainer, {
+        onScaleChange: scaleChangeHandler
+      });
+    }
+
+    // Abhyas (Practice) screen scale selector
+    const abhyasContainer = document.getElementById('abhyasScaleSelector');
+    if (abhyasContainer) {
+      this.abhyasScaleSelector = new ScaleSelector(abhyasContainer, {
+        onScaleChange: scaleChangeHandler
+      });
+    }
+
+    // Exercise mode scale selector
+    const exerciseContainer = document.getElementById('exerciseScaleSelector');
+    if (exerciseContainer) {
+      this.exerciseScaleSelector = new ScaleSelector(exerciseContainer, {
+        onScaleChange: scaleChangeHandler
+      });
+    }
+
+    // Raga screen scale selector
+    const ragaContainer = document.getElementById('ragaScaleSelector');
+    if (ragaContainer) {
+      this.ragaScaleSelector = new ScaleSelector(ragaContainer, {
+        onScaleChange: scaleChangeHandler
+      });
+    }
+  }
+
+  updateBaseSa(frequency) {
+    this.baseSa = frequency;
+
+    // Update synthesizer and tanpura
+    this.synthesizer.setBaseSa(frequency);
+    this.tanpura.setBaseSa(frequency);
+
+    // Update pitch detector if active
+    if (this.pitchDetector) {
+      this.pitchDetector.setBaseSa(frequency);
+    }
+
+    // Update swar keyboard if exists
+    if (this.swarKeyboard) {
+      this.swarKeyboard.setBaseSa(frequency);
+    }
+
+    // Sync all scale selectors
+    if (this.homeScaleSelector) {
+      this.homeScaleSelector.setScale(frequency);
+    }
+    if (this.abhyasScaleSelector) {
+      this.abhyasScaleSelector.setScale(frequency);
+    }
+    if (this.ragaScaleSelector) {
+      this.ragaScaleSelector.setScale(frequency);
+    }
+    if (this.exerciseScaleSelector) {
+      this.exerciseScaleSelector.setScale(frequency);
+    }
+
+    console.log(`Base Sa updated to: ${frequency.toFixed(2)} Hz`);
   }
 
   setupButtonRipples() {
@@ -103,6 +177,8 @@ class SwarSadhanaApp {
               🎵 अभ्यास शुरू करें (Start Practice)
             </button>
           </div>
+
+          <div id="homeScaleSelector" class="mt-4"></div>
 
           <div class="grid grid-4 mt-8">
             <div class="card exercise-card" data-exercise="swar-matching">
@@ -158,8 +234,9 @@ class SwarSadhanaApp {
             <button class="tanpura-btn" id="tanpuraToggleBtn">
               🎻 तानपूरा (Tanpura)
             </button>
-            <span class="text-muted">Sa: ${this.baseSa.toFixed(1)} Hz</span>
           </div>
+
+          <div id="abhyasScaleSelector"></div>
 
           <div class="card">
             <div id="swarDisplayContainer"></div>
@@ -179,6 +256,8 @@ class SwarSadhanaApp {
             <h2>राग अभ्यास</h2>
             <p class="text-muted">Raga Practice - Learn traditional Indian scales</p>
           </div>
+
+          <div id="ragaScaleSelector"></div>
 
           <div class="grid grid-3">
             ${getAllRagas().map(raga => `
@@ -204,6 +283,8 @@ class SwarSadhanaApp {
               🎻 तानपूरा (Tanpura)
             </button>
           </div>
+
+          <div id="exerciseScaleSelector"></div>
 
           <div class="card">
             <div class="text-center mb-4">
