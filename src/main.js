@@ -14,7 +14,7 @@ import { WaveformVisualizer } from './components/WaveformVisualizer.js';
 import { SwarKeyboard } from './components/SwarKeyboard.js';
 import { AccuracyMeter } from './components/AccuracyMeter.js';
 import { SHRUTI_MAP, DEFAULT_SA_FREQUENCY, generateShuddhaScale, compareToTarget } from './utils/swarUtils.js';
-import { RAGA_DATABASE, getAllRagas, generateRagaScale, getRandomRagaNote } from './utils/ragaDatabase.js';
+import { RAGA_DATABASE, getAllRagas, generateRagaScale, getRandomRagaNote, getPakadDisplay } from './utils/ragaDatabase.js';
 import { getSettings, getProgress, recordSession, getOverallAccuracy, getBaseSaFrequency } from './utils/storageUtils.js';
 import animationEngine from './utils/AnimationEngine.js';
 
@@ -216,6 +216,14 @@ class SwarSadhanaApp {
               <div class="target-swar" id="targetSwarDisplay">सा</div>
             </div>
 
+            <div class="pakad-display" id="pakadSection" style="display: none;">
+              <div class="pakad-label">पकड़ (Pakad - Characteristic Phrase):</div>
+              <div class="pakad-notes" id="pakadNotes">--</div>
+              <button class="btn btn-secondary btn-sm" id="playPakadBtn">
+                🎵 पकड़ सुनें (Play Pakad)
+              </button>
+            </div>
+
             <div id="exerciseSwarDisplay"></div>
             <div id="exerciseWaveform"></div>
             <div id="exerciseAccuracy"></div>
@@ -345,6 +353,10 @@ class SwarSadhanaApp {
 
     document.getElementById('exerciseTanpuraBtn')?.addEventListener('click', () => {
       this.toggleTanpura('exerciseTanpuraBtn');
+    });
+
+    document.getElementById('playPakadBtn')?.addEventListener('click', () => {
+      this.playPakad();
     });
 
     // Progress screen
@@ -602,6 +614,20 @@ class SwarSadhanaApp {
     }
   }
 
+  /**
+   * Play the pakad phrase for the current raga
+   */
+  async playPakad() {
+    if (!this.currentRaga || !this.currentRaga.pakad) return;
+
+    const pakad = this.currentRaga.pakad;
+
+    // Play each note in sequence
+    await this.synthesizer.playSequence(pakad, 0.5, 0.1, (shrutiData, index, semitone) => {
+      console.log(`Playing pakad note ${index + 1}: ${shrutiData.hindi}`);
+    });
+  }
+
   toggleTanpura(buttonId) {
     const btn = document.getElementById(buttonId);
 
@@ -649,6 +675,23 @@ class SwarSadhanaApp {
     const exerciseInfo = titles[type] || { title: 'अभ्यास (Practice)', instruction: 'Match your voice to the target' };
     document.getElementById('exerciseTitle').textContent = exerciseInfo.title;
     document.getElementById('exerciseInstruction').textContent = exerciseInfo.instruction;
+
+    // Show pakad if this is a raga exercise
+    const pakadSection = document.getElementById('pakadSection');
+    const pakadNotes = document.getElementById('pakadNotes');
+
+    if (this.currentRaga && this.currentRaga.pakad) {
+      const pakadData = getPakadDisplay(this.currentRaga.id);
+      if (pakadData) {
+        pakadNotes.innerHTML = `
+          <span class="pakad-hindi">${pakadData.hindi}</span>
+          <span class="pakad-roman">(${pakadData.roman})</span>
+        `;
+        pakadSection.style.display = 'block';
+      }
+    } else {
+      pakadSection.style.display = 'none';
+    }
 
     // Start listening
     try {

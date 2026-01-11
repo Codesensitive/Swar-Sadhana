@@ -212,3 +212,41 @@ export function getRandomRagaNote(ragaId, baseSa = 261.63) {
         frequency: baseSa * Math.pow(2, randomSemitone / 12)
     };
 }
+
+// Local SHRUTI_MAP for pakad display (to avoid circular imports with swarUtils)
+const SHRUTI_MAP_PAKAD = {
+    0: { hindi: 'सा', roman: 'Sa' },
+    1: { hindi: 'रे॒', roman: 'Re♭' },
+    2: { hindi: 'रे', roman: 'Re' },
+    3: { hindi: 'ग॒', roman: 'Ga♭' },
+    4: { hindi: 'ग', roman: 'Ga' },
+    5: { hindi: 'म', roman: 'Ma' },
+    6: { hindi: 'म॑', roman: 'Ma♯' },
+    7: { hindi: 'प', roman: 'Pa' },
+    8: { hindi: 'ध॒', roman: 'Da♭' },
+    9: { hindi: 'ध', roman: 'Da' },
+    10: { hindi: 'नी॒', roman: 'Ni♭' },
+    11: { hindi: 'नी', roman: 'Ni' }
+};
+
+/**
+ * Get pakad as displayable swar names
+ * @param {string} ragaId - Raga identifier
+ * @returns {Object|null} Object with hindi, roman, and semitones arrays
+ */
+export function getPakadDisplay(ragaId) {
+    const raga = RAGA_DATABASE[ragaId];
+    if (!raga || !raga.pakad) return null;
+
+    const swarNames = raga.pakad.map(semitone => {
+        // Handle negative semitones (lower octave) and normalize to 0-11
+        const normalizedSemitone = ((semitone % 12) + 12) % 12;
+        return SHRUTI_MAP_PAKAD[normalizedSemitone];
+    });
+
+    return {
+        semitones: raga.pakad,
+        hindi: swarNames.map(s => s.hindi).join(' '),
+        roman: swarNames.map(s => s.roman).join(' ')
+    };
+}
